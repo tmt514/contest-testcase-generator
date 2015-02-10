@@ -57,3 +57,10 @@ scanner.cc: formatting.l parser.hh
 clean:
 	$(RM) -v $(LIB)/*.o $(LIB)/*.a scanner.cc parser.cc parser.hh parser.output formatting
 	
+
+#######################################################
+# Testing and sample files
+#######################################################
+
+test:
+	bin/run_samples.sh
