@@ -1,0 +1,94 @@
+Terminals unused in grammar
+
+   INTEGER
+
+
+Grammar
+
+    0 $accept: InputSpec $end
+
+    1 InputSpec: Lines
+
+    2 Lines: line Lines
+    3      | line
+
+    4 line: LINE
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+INTEGER (258)
+LINE (259) 4
+
+
+Nonterminals, with rules where they appear
+
+$accept (5)
+    on left: 0
+InputSpec (6)
+    on left: 1, on right: 0
+Lines (7)
+    on left: 2 3, on right: 1 2
+line (8)
+    on left: 4, on right: 2 3
+
+
+State 0
+
+    0 $accept: . InputSpec $end
+
+    LINE  shift, and go to state 1
+
+    InputSpec  go to state 2
+    Lines      go to state 3
+    line       go to state 4
+
+
+State 1
+
+    4 line: LINE .
+
+    $default  reduce using rule 4 (line)
+
+
+State 2
+
+    0 $accept: InputSpec . $end
+
+    $end  shift, and go to state 5
+
+
+State 3
+
+    1 InputSpec: Lines .
+
+    $default  reduce using rule 1 (InputSpec)
+
+
+State 4
+
+    2 Lines: line . Lines
+    3      | line .
+
+    LINE  shift, and go to state 1
+
+    $default  reduce using rule 3 (Lines)
+
+    Lines  go to state 6
+    line   go to state 4
+
+
+State 5
+
+    0 $accept: InputSpec $end .
+
+    $default  accept
+
+
+State 6
+
+    2 Lines: line Lines .
+
+    $default  reduce using rule 2 (Lines)
