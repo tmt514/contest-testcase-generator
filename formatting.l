@@ -43,9 +43,16 @@ graph        { return T_Graph; }
 "==" { return T_Equal; }
 "!=" { return T_NotEqual; }
 
-{IDENTIFIER} { return T_Identifier; }
-{INTEGER} { return T_IntConstant; }
-{DOUBLE} { return T_DoubleConstant; }
+{IDENTIFIER} { strncpy(yylval.identifier, yytext, MaxIdentLen-1);
+               yylval.identifier[MaxIdentLen-1] = 0;
+               return T_Identifier;
+             }
+{INTEGER} { yylval.intConstant = atoi(yytext);
+            return T_IntConstant;
+          }
+{DOUBLE} { yylval.doubleConstant = atof(yytext);
+           return T_DoubleConstant;
+         }
 
 [ \t] { /* Skip all whitespaces */ }
 \n { /* Skip all change lines */ }

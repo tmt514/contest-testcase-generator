@@ -3,6 +3,11 @@
 
 #include <cstdio>
 #include <string>
+#include "macro.h"
+#include "variable.h"
+#include "type.h"
+#include "constraint.h"
+
 #define LIB_DIR "./lib"
 #define SRC_DIR "./src"
 #define DEBUG(...) fprintf(stderr, __VA_ARGS__)

@@ -53,6 +53,16 @@ void GeneratorProgram::dumpUserCodeDecl() {
  */
 
 void GeneratorProgram::dumpVarDecl() {
+  // TODO: we generate all non-primitive types first
+  
+  // TODO: then declare all variables
+  fprintf(stderr, "\n\n================ dumping variables =================");
+  fprintf(stderr, "varPool = %p\n", Variable::variablePool);
+  fprintf(stderr, "dumping variables! (%d)\n", (int)Variable::variablePool->size());
+
+  FOR(it, Variable::variablePool) {
+    it->second->dumpDecl(program);
+  }
 }
 
 /* GeneratorProgram::genCode()
