@@ -1,4 +1,5 @@
 #include "variable.h"
+#include "util.h"
 
 std::map<std::string, Variable *> *Variable::variablePool = new std::map<std::string, Variable *>();
 
@@ -46,11 +47,52 @@ void Variable::assignToType(Type *t) {
  *  output declaration for this specific variable
  *  TODO: how to specify local variable or?
  */
-void Variable::dumpDecl(FILE *out) {
+void Variable::dumpDecl(FILE *out, int indentation) {
   if (type == NULL) {
     fprintf(stderr, "Unknown Type!");
   } else {
-    type->dumpVariableDecl(out, *this);
+    fprintf(stderr, "Variable::dumpDecl()\n");
+    type->dumpVariableDecl(out, indentation, *this);
   }
 }
 
+/* Variable::dumpUse()
+ * -------------------
+ *  merely use the variable
+ *  TODO: different type will have different use method
+ *        inherentence?
+ */
+void Variable::dumpUse(FILE *out) {
+  fprintf(out, "%s", name);
+}
+
+/* Variable::dumpGenOne()
+ * ----------------------
+ *  generate one through type generate functions
+ */
+void Variable::dumpGenOne(FILE *out, int indentation) {
+  if (type != NULL) {
+    type->genGenOneAndAssign(out, indentation, *this, NULL);
+  }
+}
+
+/* Variable::dumpPrint()
+ * --------------------------
+ *  generate how to print this variable
+ */
+void Variable::dumpPrint(FILE *out, int indentation) {
+  if (type != NULL) {
+    type->genPrintOne(out, indentation, *this, NULL);
+  }
+}
+
+/* Variable::dumpGenOneFunc()
+ * --------------------------
+ *  call Type::genGenOneFunc() to get a specific call,
+ *  according to constraints
+ */
+void Variable::dumpGenOneFunc(FILE *out) {
+  if (type != NULL) {
+    type->genGenOneFunc(out, NULL);
+  }
+}

@@ -7,6 +7,7 @@
 #include "variable.h"
 #include "type.h"
 #include "constraint.h"
+#include "ast.h"
 
 #define LIB_DIR "./lib"
 #define SRC_DIR "./src"
@@ -15,8 +16,11 @@
 class GeneratorProgram {
   public:
     void outputTo(const std::string &);
+    void setFormatting(Formatting *);
   private:
     FILE *program;
+    Formatting *formatting;
+
     void dumpHeader();
     void dumpUserCodeDecl();
     void dumpVarDecl();

@@ -16,7 +16,11 @@ std::string gpFilename, vpFilename;
 %token <intConstant> T_IntConstant
 %token <doubleConstant> T_DoubleConstant
 
+%token T_If T_Else T_Then T_Do T_While T_End T_Repeat
+%token <charConstant> T_CharConstant
+
 %union {
+  char charConstant;
   int intConstant;
   bool boolConstant;
   double doubleConstant;
@@ -27,6 +31,10 @@ std::string gpFilename, vpFilename;
   Variable *variable;
   Type *type;
   Constraint *constraint, *fullRangeConstraint;
+  Formatting *formatting;
+  std::vector<Node *> *stmtList;
+  Node *node, *identOrChar;
+  VariableNode *variableNode;
 }
 
 %type <variableList> VariableList
@@ -35,12 +43,19 @@ std::string gpFilename, vpFilename;
 %type <constraint> RangeConstraints
 %type <fullRangeConstraint> FullRangeConstraint
 
+%type <formatting> Formatting
+%type <node> Stmt
+%type <variableNode> RepeatExpr
+%type <identOrChar> IdentOrChar
+%type <stmtList> StmtList
+
 %%
 
 InputSpec : TypeDecl T_Delim Formatting T_Delim Constraints {
               fprintf(stderr, "HI!!!!!!\n");
               GeneratorProgram *gp = new GeneratorProgram();
               VerifierProgram *vp = new VerifierProgram();
+              gp->setFormatting($3);
               gp->outputTo(gpFilename);
               vp->outputTo(vpFilename);
               printf("Input Format Correct!\n");
@@ -49,7 +64,7 @@ InputSpec : TypeDecl T_Delim Formatting T_Delim Constraints {
 
 /* --------------- Type Decl ------------------- */ 
 
-TypeDecl : TypeDecl Decl {}
+TypeDecl : TypeDecl Decl { fprintf(stderr, "TypeDecl: DONE!\n"); }
          | {}
          ;
 
@@ -100,9 +115,27 @@ Type : T_Int      { $$ = IntType::intType; }
      ;
 
 /* -------------- Formatting Languages ------------------ */
-Formatting :
+
+Formatting : StmtList { $$ = new Formatting($1); }
            ;
 
+StmtList : StmtList Stmt { ($$ = $1)->push_back($2); }
+         | Stmt { ($$=new std::vector<Node*>())->push_back($1); }
+         ;
+
+Stmt       : T_Repeat RepeatExpr T_Do Formatting T_End { $$ = new RepeatNode($2, $4); }
+           | IdentOrChar { $$ = $1; }
+           ;
+
+/*| T_If IfExpr T_Then T_Do Formatting T_End { $$ = new IfNode($2, $5); }
+           | T_If IfExpr T_Then T_Do Formatting T_End T_Else T_Do Formatting T_End { $$ = new IfNode($2, $5, $9); } */
+
+RepeatExpr : '$' Variable { $$ = new VariableUseNode($2); }
+           ;
+
+IdentOrChar : T_CharConstant { fprintf(stderr, ">>>>>> here %c\n", $1); $$ = new CharNode($1); }
+            | Variable { fprintf(stderr, ">>>>>>> there %s\n", $1->name); $$ = new VariableNode($1); }
+            ;
 
 /* -------------- Constraints -------------------- */
 Constraints :
@@ -111,5 +144,5 @@ Constraints :
 %%
 
 void yyerror(const char *s) {
-  fprintf(stderr, "%s\n", s);
+  fprintf(stderr, "error: %s\n", s);
 }

@@ -10,6 +10,7 @@
 #include "variable.h"
 #include "type.h"
 #include "constraint.h"
+#include "ast.h"
 #include "parser.hh"
 
 extern char *yytext;

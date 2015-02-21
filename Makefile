@@ -21,7 +21,7 @@ YFLAGS = -dvty
 # This part concerns build of libraries
 #####################################################
 LIBOBJS = $(addprefix $(LIB)/,generator_program.o verifier_program.o\
-						type.o variable.o constraint.o)
+						type.o variable.o constraint.o ast.o util.o)
 LIBCPPFLAGS = -std=c++11 -static -I$(INCLUDES)
 
 lib/libTestGen.a: $(LIBOBJS)

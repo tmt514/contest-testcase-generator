@@ -17,47 +17,68 @@ BEG_COMMENT       ("/*")
 END_COMMENT       ("*/")
 SINGLE_COMMENT    ("//"[^\n]*)
 
+ /* for FORMATTING part */
+CODE_SEGMENT      ("\n- ")
 
-%s FORMATTING CONDITION
+
+%x FORMATTING CONDITION
+%x CODESEG
 
 %%
 
 <INITIAL>"###"          { BEGIN(FORMATTING);
                           return T_Delim; }
-<FORMATTING>"###"       { BEGIN(CONDITION);
+<FORMATTING>"###"       { fprintf(stderr, "HERE!!!####\n"); BEGIN(CONDITION);
                           return T_Delim; }
 
-
  /* Primitive types, specialized for testcases */
-int|integer  { return T_Int; }
-double|float { return T_Double; }
-string       { return T_String; }
-grid         { return T_Grid; }
-tree         { return T_Tree; }
-graph        { return T_Graph; }
+<INITIAL,CONDITION>int|integer  { return T_Int; }
+<INITIAL,CONDITION>double|float { return T_Double; }
+<INITIAL,CONDITION>string       { return T_String; }
+<INITIAL,CONDITION>grid         { return T_Grid; }
+<INITIAL,CONDITION>tree         { return T_Tree; }
+<INITIAL,CONDITION>graph        { return T_Graph; }
 
  /* Comparson, relational, dimension tokens */
-"[]" { return T_Dim; }
-"<=" { return T_LessEqual; }
-">=" { return T_GreaterEqual; }
-"==" { return T_Equal; }
-"!=" { return T_NotEqual; }
+<*>"[]" { return T_Dim; }
+<*>"<=" { return T_LessEqual; }
+<*>">=" { return T_GreaterEqual; }
+<*>"==" { return T_Equal; }
+<*>"!=" { return T_NotEqual; }
 
-{IDENTIFIER} { strncpy(yylval.identifier, yytext, MaxIdentLen-1);
-               yylval.identifier[MaxIdentLen-1] = 0;
-               return T_Identifier;
-             }
-{INTEGER} { yylval.intConstant = atoi(yytext);
+<INITIAL,CONDITION>{INTEGER} { yylval.intConstant = atoi(yytext);
             return T_IntConstant;
           }
-{DOUBLE} { yylval.doubleConstant = atof(yytext);
+<INITIAL,CONDITION>{DOUBLE} { yylval.doubleConstant = atof(yytext);
            return T_DoubleConstant;
          }
 
-[ \t] { /* Skip all whitespaces */ }
-\n { /* Skip all change lines */ }
+<INITIAL,CONDITION>[ \t] { /* Skip all whitespaces */ }
+<INITIAL,CONDITION>"\n" { /* Skip all change lines */ }
 
-. { return yytext[0]; }
+<FORMATTING>{CODE_SEGMENT} { BEGIN(CODESEG); }
+<CODESEG>"\n" { unput('\n'); BEGIN(FORMATTING); }
+<CODESEG>"REPEAT"|"repeat"   { return T_Repeat; }
+<CODESEG>"DO"|"do"           { return T_Do; }
+<CODESEG>"END"|"end"         { return T_End; }
+<CODESEG>"IF"|"if"           { return T_If; }
+<CODESEG>"THEN"|"then"       { return T_Then; }
+<CODESEG>"ELSE"|"else"       { return T_Else; }
+<CODESEG>"WHILE"|"while"     { return T_While; }
+<CODESEG>.          { return yytext[0]; }
+
+<*>{IDENTIFIER} { strncpy(yylval.identifier, yytext, MaxIdentLen);
+               yylval.identifier[MaxIdentLen] = 0;
+               return T_Identifier;
+             }
+
+<FORMATTING>"$"     { return '$'; }
+<FORMATTING>"\\\n"  { /* Skip line break */ }
+<FORMATTING>"\\$"   { yylval.charConstant = yytext[1]; return T_CharConstant; }
+<FORMATTING>"\n"    { yylval.charConstant = yytext[0]; return T_CharConstant; }
+<FORMATTING>.       { yylval.charConstant = yytext[0]; return T_CharConstant; }
+
+<*>. { return yytext[0]; }
 
 %%
 
