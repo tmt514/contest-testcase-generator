@@ -35,6 +35,8 @@ std::string gpFilename, vpFilename;
   std::vector<Node *> *stmtList;
   Node *node, *identOrChar;
   VariableNode *variableNode;
+  RepeatExpr *repeatExpr;
+  std::vector<RepeatExpr *> *repeatExprList;
 }
 
 %type <variableList> VariableList
@@ -45,7 +47,8 @@ std::string gpFilename, vpFilename;
 
 %type <formatting> Formatting
 %type <node> Stmt
-%type <variableNode> RepeatExpr
+%type <repeatExpr> RepeatExpr
+%type <repeatExprList> RepeatExprList
 %type <identOrChar> IdentOrChar
 %type <stmtList> StmtList
 
@@ -123,14 +126,18 @@ StmtList : StmtList Stmt { ($$ = $1)->push_back($2); }
          | Stmt { ($$=new std::vector<Node*>())->push_back($1); }
          ;
 
-Stmt       : T_Repeat RepeatExpr T_Do Formatting T_End { $$ = new RepeatNode($2, $4); }
+Stmt       : T_Repeat RepeatExprList T_Do Formatting T_End { $$ = new RepeatNode($2, $4); }
            | IdentOrChar { $$ = $1; }
            ;
 
 /*| T_If IfExpr T_Then T_Do Formatting T_End { $$ = new IfNode($2, $5); }
            | T_If IfExpr T_Then T_Do Formatting T_End T_Else T_Do Formatting T_End { $$ = new IfNode($2, $5, $9); } */
 
-RepeatExpr : '$' Variable { $$ = new VariableUseNode($2); }
+RepeatExprList : RepeatExpr { ($$ = new std::vector<RepeatExpr*>())->push_back($1); }
+               | RepeatExprList ',' RepeatExpr { ($$=$1)->push_back($3); }
+               ;
+
+RepeatExpr : '$' Variable { $$ = new RepeatExpr(new VariableExpr($2, false)); }
            ;
 
 IdentOrChar : T_CharConstant { fprintf(stderr, ">>>>>> here %c\n", $1); $$ = new CharNode($1); }

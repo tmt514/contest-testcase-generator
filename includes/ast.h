@@ -10,6 +10,9 @@
 #include "type.h"
 #include "constraint.h"
 
+class RepeatExpr;
+class Expr;
+
 class Node {
   public:
     Node() {}
@@ -49,12 +52,47 @@ class VariableUseNode : public VariableNode {
 
 class RepeatNode : public Node {
   protected:
-    VariableNode *expr;
+    std::vector<RepeatExpr *> *exprList;
     Formatting *stmt;
   public:
-    RepeatNode(VariableNode *_expr, Formatting *_stmt) : expr(_expr), stmt(_stmt) {}
+    RepeatNode(std::vector<RepeatExpr *> *_expr, Formatting *_stmt) : exprList(_expr), stmt(_stmt) {}
     void genGenOneCode(FILE *out, int indentation);
-    Variable* getVariable();
+}; 
+
+class RepeatExpr : public Node {
+  protected:
+    Expr *expr;
+    Variable *idx;
+  public:
+    RepeatExpr(Expr *_expr);
+    RepeatExpr(Expr *_expr, Variable *var) : expr(_expr), idx(var) {}
+    void genGenOneCode(FILE *out, int indentation);
+    void genGenOneCodeBegin(FILE *out, int indentation);
+    void genGenOneCodeEnd(FILE *out, int indentation);
 };
+
+/* =============== Expr ================= */
+
+typedef std::vector<Variable *> VARLIST;
+
+class Expr : public Node {
+  protected:
+    
+  public:
+    Expr() : Node() {}
+    virtual void genGenOneCode(FILE *out, int indentation) = 0;
+    virtual void getAllVariableInvolved(VARLIST &varList) = 0;
+};
+
+class VariableExpr : public Expr {
+  protected:
+    Variable *var;
+    bool needRegenerate;
+  public:
+    VariableExpr(Variable *_var, bool _regen) : var(_var), needRegenerate(_regen) {}
+    void genGenOneCode(FILE *out, int indentation);
+    void getAllVariableInvolved(VARLIST &varList);
+};
+
 
 #endif
