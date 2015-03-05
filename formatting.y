@@ -146,6 +146,7 @@ RepeatExprList : RepeatExpr { ($$ = new std::vector<RepeatExpr*>())->push_back($
                ;
 
 RepeatExpr : '$' Variable { $$ = new RepeatExpr(new VariableExpr($2, false)); }
+           | T_LazyExpr { $$ = new RepeatExpr(new LazyExpr($1)); }
            ;
 
 IdentOrChar : T_CharConstant { fprintf(stderr, "### CharNode %c\n", $1); $$ = new CharNode($1); }
