@@ -114,6 +114,39 @@ void RepeatExpr::genGenOneCodeEnd(FILE *out, int indentation) {
   fprintf(out, "}\n");
 }
 
+/* ==================== RootExpr ==================== */
+
+/* RootExpr::genGenOneCode()
+ * ---------------------------
+ *  this method will print a print method to print the expression
+ *  in order to know how to print, we must know the type of expr first.
+ */
+void RootExpr::genGenOneCode(FILE *out, int indentation) {
+  //fprintf(stderr, "!!!RootExpr::genGenOneCode() Not Done Yet\n");
+  //TODO
+  type = getType();
+  if (type) {
+    type->genPrintExpr(out, indentation, expr);
+  }
+}
+
+/* RootExpr::getAllVariableInvolved()
+ * -----------------------------------
+ */
+void RootExpr::getAllVariableInvolved(VARLIST &varList) {
+  expr->getAllVariableInvolved(varList);
+}
+
+/* RootExpr::getType()
+ * --------------------
+ */
+Type* RootExpr::getType() {
+  if (type) return type;
+  type = expr->getType();
+  return type;
+}
+
+
 /* ==================== VariableExpr ================== */
 
 /* VariableExpr::genGenOneCode()
@@ -132,3 +165,104 @@ void VariableExpr::getAllVariableInvolved(VARLIST &varList) {
   varList.push_back(var);
 }
 
+/* VariableExpr::getType()
+ * ------------------------
+ *  same as the variable's type
+ */
+Type* VariableExpr::getType() {
+  if (type) return type;
+  type = var->type;
+  return type;
+}
+
+/* ==================== LazyExpr ================== */
+
+/* LazyExpr::genGenOneCode()
+ * -------------------------
+ *  Just print out the string
+ */
+void LazyExpr::genGenOneCode(FILE *out, int indentation) {
+  fprintf(out, "%s", str);
+}
+
+/* LazyExpr::getAllVariableInvolved()
+ * ----------------------------------
+ *  just do nothing
+ */
+void LazyExpr::getAllVariableInvolved(VARLIST &varList) {
+}
+
+/* LazyExpr::getType()
+ * -------------------
+ *  return NULL
+ */
+Type* LazyExpr::getType() {
+  return NULL;
+}
+
+/* ==================== CompoundExpr ==================== */
+
+/* CompoundExpr::genGenOneCode()
+ * -----------------------------
+ */
+void CompoundExpr::genGenOneCode(FILE *out, int indentation) {
+  // TODO: what about graph * graph? string xor string? define functions?
+  if (left) {
+    fprintf(out, "(");
+    left->genGenOneCode(out, indentation);
+    fprintf(out, ")");
+  }
+  if (op) op->genGenOneCode(out, indentation);
+  if (right) {
+    fprintf(out, "(");
+    right->genGenOneCode(out, indentation);
+    fprintf(out, ")");
+  }
+}
+
+/* CompoundExpr::getAllVariableInvolved()
+ * --------------------------------------
+ *  just recursively call
+ */
+void CompoundExpr::getAllVariableInvolved(VARLIST &varList) {
+  left->getAllVariableInvolved(varList);
+  right->getAllVariableInvolved(varList);
+}
+
+/* CompoundExpr::getType()
+ * -----------------------
+ *  needs auto detect the return type
+ */
+Type* CompoundExpr::getType() {
+  //TODO: comparability
+  if (type) return type;
+  if (left->getType() == right->getType())
+    type = left->getType();
+  return type;
+}
+
+/* ================= CompoundOperator ================= */
+
+/* CompoundOperator::genGenOneCode()
+ * ---------------------------------
+ */
+void CompoundOperator::genGenOneCode(FILE *out, int indentation) {
+  //TODO: this should be deprecated, we must use functions for non-primitive operators
+  fprintf(out, "%s", op);
+}
+
+/* ================= IntConstantExpr ================== */
+
+/* IntConstantExpr::genGenOneCode()
+ * --------------------------------
+ */
+void IntConstantExpr::genGenOneCode(FILE *out, int indentation) {
+  fprintf(out, "%d", val);
+}
+
+/* IntConstantExpr::getType()
+ * --------------------------
+ */
+Type* IntConstantExpr::getType() {
+  return IntType::intType;
+}

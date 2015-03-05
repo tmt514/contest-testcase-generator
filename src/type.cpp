@@ -1,5 +1,6 @@
 #include "type.h"
 #include "util.h"
+#include "ast.h"
 
 int Type::ID = 0;
 IntType *IntType::intType = new IntType("int");
@@ -82,6 +83,16 @@ void IntType::genPrintOne(FILE *out, int indentation, Variable &var, Constraint 
   fprintf(out, "printf(\"%%d\", %s);\n", var.name);
 }
 
+/* IntType::genPrintExpr()
+ * -----------------------
+ */
+void IntType::genPrintExpr(FILE *out, int indentation, Expr *expr) {
+  Utility::PrintIndentation(out, indentation);
+  fprintf(out, "printf(\"%%d\", ");
+  expr->genGenOneCode(out, indentation);
+  fprintf(out, ");\n");
+}
+
 /* DoubleType::genGenOneCode()
  * ---------------------------
  */
@@ -97,4 +108,14 @@ void DoubleType::genGenOneCode(FILE *out, int indentation, Constraint *c) {
 void DoubleType::genPrintOne(FILE *out, int indentation, Variable &var, Constraint *c) {
   Utility::PrintIndentation(out, indentation);
   fprintf(out, "printf(\"%%.6f\", %s);\n", var.name);
+}
+
+/* DoubleType::genPrintExpr()
+ * --------------------------
+ */
+void DoubleType::genPrintExpr(FILE *out, int indentation, Expr *expr) {
+  Utility::PrintIndentation(out, indentation);
+  fprintf(out, "printf(\"%%.6f\", ");
+  expr->genGenOneCode(out, indentation);
+  fprintf(out, ");\n");
 }

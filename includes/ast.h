@@ -5,13 +5,15 @@
 
 #include <cstdio>
 #include <vector>
+
+class RepeatExpr;
+class Expr;
+
 #include "macro.h"
 #include "variable.h"
 #include "type.h"
 #include "constraint.h"
 
-class RepeatExpr;
-class Expr;
 
 class Node {
   public:
@@ -77,11 +79,22 @@ typedef std::vector<Variable *> VARLIST;
 
 class Expr : public Node {
   protected:
-    
+    Type *type;
   public:
-    Expr() : Node() {}
+    Expr() : Node() { type = NULL; }
     virtual void genGenOneCode(FILE *out, int indentation) = 0;
     virtual void getAllVariableInvolved(VARLIST &varList) = 0;
+    virtual Type* getType() = 0;
+};
+
+class RootExpr : public Expr {
+  protected:
+    Expr *expr;
+  public:
+    RootExpr(Expr *_expr) : Expr(), expr(_expr) {}
+    void genGenOneCode(FILE *out, int indentation);
+    void getAllVariableInvolved(VARLIST &varList);
+    Type* getType();
 };
 
 class VariableExpr : public Expr {
@@ -89,10 +102,53 @@ class VariableExpr : public Expr {
     Variable *var;
     bool needRegenerate;
   public:
-    VariableExpr(Variable *_var, bool _regen) : var(_var), needRegenerate(_regen) {}
+    VariableExpr(Variable *_var, bool _regen) : Expr(), var(_var), needRegenerate(_regen) {}
     void genGenOneCode(FILE *out, int indentation);
     void getAllVariableInvolved(VARLIST &varList);
+    Type* getType();
 };
+
+class LazyExpr : public Expr {
+  protected:
+    const char *str;
+  public:
+    LazyExpr(const char *_str) : Expr(), str(_str) {}
+    void genGenOneCode(FILE *out, int indentation);
+    void getAllVariableInvolved(VARLIST &varList);
+    Type* getType();
+};
+
+class CompoundOperator : public Node {
+  protected:
+    const char *op;
+  public:
+    CompoundOperator(const char *_op) : op(_op) {}
+    void genGenOneCode(FILE *out, int indentation);
+};
+
+class CompoundExpr : public Expr {
+  protected:
+    Expr *left, *right;
+    CompoundOperator *op;
+  public:
+    CompoundExpr(Expr *_left, CompoundOperator *_op, Expr *_right) : Expr(), left(_left), right(_right), op(_op) {}
+    void genGenOneCode(FILE *out, int indentation);
+    void getAllVariableInvolved(VARLIST &varList);
+    Type* getType();
+};
+
+class IntConstantExpr : public Expr {
+  protected:
+    int val;
+  public:
+    IntConstantExpr(int _val) : Expr(), val(_val) {}
+    void genGenOneCode(FILE *out, int indentation);
+    void getAllVariableInvolved(VARLIST &varList) {}
+    Type* getType();
+};
+
+
+/* ================ Constraint ================= */
 
 
 #endif

@@ -22,9 +22,10 @@ CODE_SEGMENT      ("\n- ")
 CODE_INJECT       ("\n-- ")
 CODE_INJECT_BLOCK_BEGIN ("%{")
 CODE_INJECT_BLOCK_END   ("%}")
+LAZY_EXPR         ("${"[^}]*"}")
 
 
-%x FORMATTING CONDITION
+%x FORMATTING CONDITION FORMATEXPR
 %x CODESEG CODEINJ CODEIJB
 
 %%
@@ -49,10 +50,10 @@ CODE_INJECT_BLOCK_END   ("%}")
 <*>"==" { return T_Equal; }
 <*>"!=" { return T_NotEqual; }
 
-<INITIAL,CODESEG,CONDITION>{INTEGER} { yylval.intConstant = atoi(yytext);
+<INITIAL,FORMATEXPR,CODESEG,CONDITION>{INTEGER} { yylval.intConstant = atoi(yytext);
             return T_IntConstant;
           }
-<INITIAL,CODESEG,CONDITION>{DOUBLE} { yylval.doubleConstant = atof(yytext);
+<INITIAL,FORMATEXPR,CODESEG,CONDITION>{DOUBLE} { yylval.doubleConstant = atof(yytext);
            return T_DoubleConstant;
          }
 
@@ -78,14 +79,19 @@ CODE_INJECT_BLOCK_END   ("%}")
                return T_Identifier;
              }
 
+<CODESEG>{LAZY_EXPR}  { yylval.stringConstant = strndup(yytext+2, strlen(yytext)-3); return T_LazyExpr; }
 <CODESEG>.          { return yytext[0]; }
 <FORMATTING>"$"     { return '$'; }
+<FORMATTING>"${"    { BEGIN(FORMATEXPR); return T_FormatExprBegin; }
+<FORMATEXPR>"}"     { BEGIN(FORMATTING); return T_FormatExprEnd; }
 <FORMATTING>"\\\n"  { /* Skip line break */ }
 <FORMATTING>"\\$"   { yylval.charConstant = yytext[1]; return T_CharConstant; }
 <FORMATTING>"\n"    { yylval.charConstant = yytext[0]; return T_CharConstant; }
+<FORMATTING>"\\{"   { yylval.charConstant = yytext[0]; return T_CharConstant; }
+<FORMATTING>"\\}"   { yylval.charConstant = yytext[0]; return T_CharConstant; }
 <FORMATTING>.       { yylval.charConstant = yytext[0]; return T_CharConstant; }
 
-<*>. { return yytext[0]; }
+<*>. { fprintf(stderr, "READ [%c]\n", yytext[0]); return yytext[0]; }
 
 %%
 

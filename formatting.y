@@ -18,6 +18,9 @@ std::string gpFilename, vpFilename;
 
 %token T_If T_Else T_Then T_Do T_While T_End T_Repeat
 %token <charConstant> T_CharConstant
+%token <stringConstant> T_LazyExpr
+
+%token T_FormatExprBegin T_FormatExprEnd
 
 %union {
   char charConstant;
@@ -37,6 +40,7 @@ std::string gpFilename, vpFilename;
   VariableNode *variableNode;
   RepeatExpr *repeatExpr;
   std::vector<RepeatExpr *> *repeatExprList;
+  Expr *expr;
 }
 
 %type <variableList> VariableList
@@ -52,6 +56,10 @@ std::string gpFilename, vpFilename;
 %type <identOrChar> IdentOrChar
 %type <stmtList> StmtList
 
+%type <expr> Expr
+
+%left '+' '-'
+%left '*' '/' '%'
 %%
 
 InputSpec : TypeDecl T_Delim Formatting T_Delim Constraints {
@@ -140,8 +148,17 @@ RepeatExprList : RepeatExpr { ($$ = new std::vector<RepeatExpr*>())->push_back($
 RepeatExpr : '$' Variable { $$ = new RepeatExpr(new VariableExpr($2, false)); }
            ;
 
-IdentOrChar : T_CharConstant { fprintf(stderr, ">>>>>> here %c\n", $1); $$ = new CharNode($1); }
-            | Variable { fprintf(stderr, ">>>>>>> there %s\n", $1->name); $$ = new VariableNode($1); }
+IdentOrChar : T_CharConstant { fprintf(stderr, "### CharNode %c\n", $1); $$ = new CharNode($1); }
+            | Variable { fprintf(stderr, "### VariableNode %s\n", $1->name); $$ = new VariableNode($1); }
+            | '$' Variable { fprintf(stderr, "### VariableUseNode %s\n", $2->name); $$ = new VariableUseNode($2); }
+            | T_FormatExprBegin Expr T_FormatExprEnd { fprintf(stderr, "### Expr "); $2->genGenOneCode(stderr, 0); fprintf(stderr, "\n"); $$ = new RootExpr($2); }
+            ;
+
+/* -------------- Expr -------------- */
+
+Expr        : Variable { $$ = new VariableExpr($1, false); }
+            | T_IntConstant { $$ = new IntConstantExpr($1); }
+            | Expr '+' Expr { $$ = new CompoundExpr($1, new CompoundOperator("+"), $3); }
             ;
 
 /* -------------- Constraints -------------------- */

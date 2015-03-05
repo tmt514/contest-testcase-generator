@@ -4,6 +4,6 @@ n, m: integer
 ###
 T
 - REPEAT $T DO
-n m
+n m ${m+3}
 - END
 ###

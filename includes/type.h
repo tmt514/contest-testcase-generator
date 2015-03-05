@@ -7,6 +7,7 @@
 #include <set>
 #include "variable.h"
 #include "constraint.h"
+#include "ast.h"
 
 class Type
 {
@@ -30,6 +31,8 @@ class Type
     virtual void genGenOneAndAssign(FILE *out, int indentation, Variable &var, Constraint *c) = 0;
     // printf("%d", var);
     virtual void genPrintOne(FILE *out, int indentation, Variable &var, Constraint *c) = 0;
+    // printf("%d", expr);
+    virtual void genPrintExpr(FILE *out, int indentation, Expr *expr) = 0;
     //register this variable to the set
     void addVariable(Variable *var) { setOfVariables.push_back(var); } 
     void dumpDebug() { fprintf(stderr, "dumpDebug for type %s\n", typeName); }
@@ -41,6 +44,7 @@ class PrimitiveType : public Type
     PrimitiveType(const char *str) : Type(str) {}
     virtual void genGenOneCode(FILE *out, int indentation, Constraint *c) = 0;
     virtual void genPrintOne(FILE *out, int indentation, Variable &var, Constraint *c) = 0;
+    virtual void genPrintExpr(FILE *out, int indentation, Expr *expr) = 0;
     void genGenOneFunc(FILE *out, Constraint *c);
     void genGenOneAndAssign(FILE *out, int indentation, Variable &var, Constraint *c);
     void dumpDecl(FILE *out);
@@ -54,6 +58,7 @@ class IntType : public PrimitiveType
     IntType(const char *str) : PrimitiveType(str) {}
     void genGenOneCode(FILE *out, int indentation, Constraint *c);
     void genPrintOne(FILE *out, int indentation, Variable &var, Constraint *c);
+    void genPrintExpr(FILE *out, int indentation, Expr *expr);
 };
 
 class DoubleType : public PrimitiveType
@@ -63,6 +68,7 @@ class DoubleType : public PrimitiveType
     DoubleType(const char *str) : PrimitiveType(str) {}
     void genGenOneCode(FILE *out, int indentation, Constraint *c);
     void genPrintOne(FILE *out, int indentation, Variable &var, Constraint *c);
+    void genPrintExpr(FILE *out, int indentation, Expr *expr);
 };
 
 /*
