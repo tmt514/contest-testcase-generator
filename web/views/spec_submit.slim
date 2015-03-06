@@ -1,0 +1,9 @@
+pre
+  == @gencode
+
+form action='/hi' method='POST'
+  div
+    button submit
+  div
+    textarea name='spec' rows='30' cols='80'
+      == @spec

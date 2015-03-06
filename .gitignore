@@ -23,3 +23,6 @@
 # Vim
 *.swp
 *.swo
+
+# sass
+*/.sass-cache/
