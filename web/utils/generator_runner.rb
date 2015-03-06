@@ -18,9 +18,13 @@ helpers do
     o, e, s = Open3.capture3("./formatting -G #{dir}/generator.cpp", chdir: dir, stdin_data: spec)
     logger.info(o)
     logger.info("return status = #{s}")
-    
-    o = File.read("#{dir}/generator.cpp")
-    # FileUtils.rmdir dir
+    begin
+      o = File.read("#{dir}/generator.cpp")
+    rescue
+      o = "syntax error"
+    end
+
+    FileUtils.rmdir dir
     return o
   end
 end

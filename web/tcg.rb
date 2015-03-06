@@ -41,11 +41,17 @@ end
 
 post '/hi' do
   @spec = params[:spec]
-  @spec = @spec + "\n"
-  @spec.each_byte do |i|
-    puts i
-  end
-  puts @spec
+  @spec.gsub! "\r", ""
+  @gencode = generator_run(@spec)
+  slim :spec_submit, layout: :layout_spec
+end
+
+get '/samples' do
+  slim :spec_samples_list, layout: :layout_spec
+end
+
+get '/samples/:filename' do
+  @spec = File.read("views/samples/#{params[:filename]}")
   @gencode = generator_run(@spec)
   slim :spec_submit, layout: :layout_spec
 end
