@@ -30,6 +30,8 @@ LAZY_EXPR         ("${"[^}]*"}")
 
 %%
 
+<*>"\r"                 { /* ignore all carrage return */ }
+
 <INITIAL>"###"          { BEGIN(FORMATTING);
                           return T_Delim; }
 <FORMATTING>"###"       { BEGIN(CONDITION);
