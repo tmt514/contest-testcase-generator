@@ -1,5 +1,11 @@
 %{
 #include "formatting.h"
+
+static bool currentLineIsEmpty; 
+
+static void DoBeforeEachAction();
+#define YY_USER_ACTION DoBeforeEachAction();
+
 %}
 
  /* Definitions, copied & modified from Compiler homework pp2 */
@@ -18,8 +24,8 @@ END_COMMENT       ("*/")
 SINGLE_COMMENT    ("//"[^\n]*)
 
  /* for FORMATTING part */
-CODE_SEGMENT      ("\n- ")
-CODE_INJECT       ("\n-- ")
+CODE_SEGMENT      ^"- "
+CODE_INJECT       ^"-- "
 CODE_INJECT_BLOCK_BEGIN ("%{")
 CODE_INJECT_BLOCK_END   ("%}")
 LAZY_EXPR         ("${"[^}]*"}")
@@ -32,9 +38,9 @@ LAZY_EXPR         ("${"[^}]*"}")
 
 <*>"\r"                 { /* ignore all carrage return */ }
 
-<INITIAL>"###"          { BEGIN(FORMATTING);
+<INITIAL>"###\n"          { BEGIN(FORMATTING);
                           return T_Delim; }
-<FORMATTING>"###"       { BEGIN(CONDITION);
+<FORMATTING>"###\n"       { BEGIN(CONDITION);
                           return T_Delim; }
 
  /* Primitive types, specialized for testcases */
@@ -65,7 +71,8 @@ LAZY_EXPR         ("${"[^}]*"}")
 <FORMATTING>{CODE_SEGMENT} { BEGIN(CODESEG); }
 <FORMATTING>{CODE_INJECT} { BEGIN(CODEINJ); }
 <FORMATTING>{CODE_INJECT_BLOCK_BEGIN} { BEGIN(CODEIJB); }
-<CODESEG,CODEINJ>"\n" { unput('\n'); BEGIN(FORMATTING); }
+<CODESEG>"\n"        { BEGIN(FORMATTING); }
+<CODEINJ>"\n"        { unput('\n'); BEGIN(FORMATTING); }
 <CODEIJB>{CODE_INJECT_BLOCK_END} { BEGIN(FORMATTING); }
 <CODESEG>"REPEAT"|"repeat"   { return T_Repeat; }
 <CODESEG>"DO"|"do"           { return T_Do; }
@@ -96,6 +103,13 @@ LAZY_EXPR         ("${"[^}]*"}")
 <*>. { fprintf(stderr, "READ [%c]\n", yytext[0]); return yytext[0]; }
 
 %%
+
+/* DoBeforeEachAction()
+ * ---------------------
+ * this function will be called each time
+ */
+void DoBeforeEachAction() {
+}
 
 int yywrap() {
   return 1;
